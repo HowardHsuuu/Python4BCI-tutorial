@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python4BCI Tutorial</title>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a26;
+            --bg-code: #0d0d14;
+            --text-primary: #e8e8ed;
+            --text-secondary: #9898a8;
+            --text-muted: #5a5a6e;
+            --accent-electric: #00f0ff;
+            --accent-neural: #7b5cff;
+            --accent-signal: #00ff88;
+            --accent-alert: #ff6b35;
+            --accent-data: #ffd93d;
+            --border-color: #2a2a3a;
+            --glow-electric: rgba(0, 240, 255, 0.12);
+            --glow-neural: rgba(123, 92, 255, 0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+        }
+
+        .bg-neural {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 20%, var(--glow-electric) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, var(--glow-neural) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .lang-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 200;
+            display: flex;
+            gap: 4px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .lang-btn.active {
+            background: var(--accent-electric);
+            color: var(--bg-primary);
+        }
+
+        .lang-btn:hover:not(.active) {
+            background: var(--bg-card);
+        }
+
+        [data-lang="zh"] { display: none; }
+        body.zh [data-lang="en"] { display: none; }
+        body.zh [data-lang="zh"] { display: block; }
+
+        .nav {
+            position: fixed;
+            top: 0; left: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+            z-index: 100;
+            padding: 24px 0;
+        }
+
+        .nav-header {
+            padding: 0 24px 24px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+        }
+
+        .nav-logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-electric), var(--accent-neural));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-section { padding: 12px 24px; }
+
+        .nav-section-title {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 8px 12px;
+            margin: 2px 0;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+            border-left: 2px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border-left-color: var(--accent-electric);
+        }
+
+        .main {
+            margin-left: 280px;
+            padding: 48px 60px 100px;
+            max-width: 880px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 0 60px;
+            margin-bottom: 60px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hero h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-electric), var(--accent-neural));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .section { margin-bottom: 70px; }
+
+        .section h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .section h2 .icon {
+            width: 40px; height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--glow-electric), var(--glow-neural));
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--accent-electric);
+        }
+
+        .section h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent-electric);
+            margin: 40px 0 16px;
+            padding-left: 14px;
+            border-left: 3px solid var(--accent-electric);
+        }
+
+        .section h4 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--accent-neural);
+            margin: 28px 0 10px;
+        }
+
+        p { margin-bottom: 14px; color: var(--text-secondary); }
+
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin: 18px 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .code-lang {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--accent-signal);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .code-btn {
+            padding: 5px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .code-btn:hover {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .code-btn.copied {
+            background: var(--accent-signal);
+            color: var(--bg-primary);
+        }
+
+        pre {
+            padding: 18px;
+            overflow-x: auto;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+        }
+
+        code { font-family: 'IBM Plex Mono', monospace; }
+
+        p code, li code {
+            background: var(--bg-card);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: var(--accent-alert);
+        }
+
+        .keyword { color: var(--accent-neural); }
+        .string { color: var(--accent-signal); }
+        .function { color: var(--accent-electric); }
+        .number { color: var(--accent-alert); }
+        .operator { color: var(--accent-data); }
+        .builtin { color: var(--accent-alert); }
+
+        ul, ol { margin: 14px 0 14px 24px; color: var(--text-secondary); }
+        li { margin: 6px 0; }
+
+        .info-box {
+            padding: 18px 22px;
+            border-radius: 12px;
+            margin: 22px 0;
+        }
+
+        .info-box.tip {
+            background: rgba(0, 240, 255, 0.06);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+        }
+
+        .info-box.warning {
+            background: rgba(255, 107, 53, 0.06);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+        }
+
+        .info-box-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .info-box.tip .info-box-title { color: var(--accent-electric); }
+        .info-box.warning .info-box-title { color: var(--accent-alert); }
+
+        a { color: var(--accent-electric); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .output-box {
+            background: var(--bg-code);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin: 10px 0;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .output-box::before {
+            content: 'Output: ';
+            color: var(--text-muted);
+        }
+
+        .mobile-toggle {
+            display: none;
+            position: fixed;
+            top: 16px; left: 16px;
+            z-index: 200;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            margin-top: 60px;
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 1024px) {
+            .nav { transform: translateX(-100%); transition: transform 0.3s; }
+            .nav.open { transform: translateX(0); }
+            .main { margin-left: 0; padding: 24px; }
+            .mobile-toggle { display: block; }
+            .hero h1 { font-size: 2rem; }
+            .lang-switch { top: 16px; right: 60px; }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="bg-neural"></div>
+
+    <div class="lang-switch">
+        <button class="lang-btn active" onclick="setLang('en')">EN</button>
+        <button class="lang-btn" onclick="setLang('zh')">ZH</button>
+    </div>
+
+    <button class="mobile-toggle" onclick="toggleNav()">Menu</button>
+
+    <nav class="nav" id="nav">
+        <div class="nav-header">
+            <div class="nav-logo">Python4BCI</div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title" data-lang="en">Basics</div>
+            <div class="nav-section-title" data-lang="zh">基礎</div>
+            <a href="#intro" class="nav-link">Introduction</a>
+            <a href="#variables" class="nav-link">Variables</a>
+            <a href="#strings" class="nav-link">Strings</a>
+            <a href="#operators" class="nav-link">Operators</a>
+            <a href="#conditionals" class="nav-link">Conditionals</a>
+            <a href="#loops" class="nav-link">Loops</a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title" data-lang="en">Data Structures</div>
+            <div class="nav-section-title" data-lang="zh">資料結構</div>
+            <a href="#lists" class="nav-link">Lists</a>
+            <a href="#dictionaries" class="nav-link">Dictionaries</a>
+            <a href="#comprehensions" class="nav-link">Comprehensions</a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title" data-lang="en">Functions & OOP</div>
+            <div class="nav-section-title" data-lang="zh">函式與物件</div>
+            <a href="#functions" class="nav-link">Functions</a>
+            <a href="#classes" class="nav-link">Classes</a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title" data-lang="en">Libraries</div>
+            <div class="nav-section-title" data-lang="zh">函式庫</div>
+            <a href="#packages" class="nav-link">Pip & Import</a>
+            <a href="#numpy" class="nav-link">NumPy</a>
+            <a href="#scipy" class="nav-link">SciPy</a>
+            <a href="#matplotlib" class="nav-link">Matplotlib</a>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-section-title" data-lang="en">Practical</div>
+            <div class="nav-section-title" data-lang="zh">實用技巧</div>
+            <a href="#file-io" class="nav-link">File I/O</a>
+            <a href="#errors" class="nav-link">Error Handling</a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <header class="hero">
+            <h1>Python4BCI</h1>
+            <p data-lang="en">Python fundamentals for Brain-Computer Interface research</p>
+            <p data-lang="zh">腦機介面研究的 Python 基礎教學</p>
+        </header>
+
+        <!-- Hands-on Notice -->
+        <div class="info-box tip" style="margin-bottom: 40px;">
+            <div class="info-box-title" data-lang="en">📝 Learn by Doing</div>
+            <div class="info-box-title" data-lang="zh">📝 動手學習</div>
+            <p data-lang="en">You are encouraged to open a <a href="https://colab.research.google.com/" target="_blank">Google Colab</a> notebook and copy the code examples to run and experiment yourself. The best way to learn programming is by doing!</p>
+            <p data-lang="zh">建議您開啟 <a href="https://colab.research.google.com/" target="_blank">Google Colab</a> 筆記本，複製程式碼範例來執行和實驗。學習程式設計最好的方法就是動手做！</p>
+        </div>
+
+        <!-- Introduction -->
+        <section class="section" id="intro">
+            <h2><span class="icon">01</span> <span data-lang="en">Introduction</span><span data-lang="zh">簡介</span></h2>
+            
+            <div data-lang="en">
+                <p>Python is the dominant language in neuroscience and BCI research due to its readability and rich scientific ecosystem. This tutorial covers the fundamentals needed to start analyzing neural signals.</p>
+                <p>Test your setup:</p>
+            </div>
+            <div data-lang="zh">
+                <p>Python 因其易讀性和豐富的科學生態系統，已成為神經科學和腦機介面研究的主流語言。本教學涵蓋分析神經訊號所需的基礎知識。</p>
+                <p>測試您的環境：</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="builtin">print</span>(<span class="string">"Hello, BCI!"</span>)</code></pre>
+            </div>
+            <div class="output-box">Hello, BCI!</div>
+        </section>
+
+        <!-- Variables -->
+        <section class="section" id="variables">
+            <h3><span data-lang="en">Variables and Data Types</span><span data-lang="zh">變數與資料型別</span></h3>
+            
+            <div data-lang="en">
+                <p>Variables store data. Python automatically determines the type based on the value assigned.</p>
+                <ul>
+                    <li><strong>str</strong>: Text like subject IDs and file names</li>
+                    <li><strong>int</strong>: Whole numbers like channel counts</li>
+                    <li><strong>float</strong>: Decimals like voltage values</li>
+                    <li><strong>bool</strong>: True/False flags</li>
+                </ul>
+            </div>
+            <div data-lang="zh">
+                <p>變數用於儲存資料。Python 會根據賦值自動判斷型別。</p>
+                <ul>
+                    <li><strong>str</strong>：文字，如受試者編號和檔案名稱</li>
+                    <li><strong>int</strong>：整數，如通道數量</li>
+                    <li><strong>float</strong>：小數，如電壓值</li>
+                    <li><strong>bool</strong>：True/False 布林值</li>
+                </ul>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>subject_id = <span class="string">"S001"</span>
+num_channels = <span class="number">64</span>
+sampling_rate = <span class="number">512.0</span>
+is_clean = <span class="keyword">True</span>
+
+<span class="builtin">print</span>(<span class="builtin">type</span>(sampling_rate))
+<span class="builtin">print</span>(<span class="string">f"Recording </span><span class="keyword">{</span>num_channels<span class="keyword">}</span><span class="string"> channels at </span><span class="keyword">{</span>sampling_rate<span class="keyword">}</span><span class="string"> Hz"</span>)</code></pre>
+            </div>
+
+            <h4><span data-lang="en">Type Conversion</span><span data-lang="zh">型別轉換</span></h4>
+            <div data-lang="en">
+                <p>Convert between types using <code>int()</code>, <code>float()</code>, and <code>str()</code>.</p>
+            </div>
+            <div data-lang="zh">
+                <p>使用 <code>int()</code>、<code>float()</code> 和 <code>str()</code> 進行型別轉換。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>samples = <span class="string">"1000"</span>
+samples_int = <span class="builtin">int</span>(samples)
+samples_float = <span class="builtin">float</span>(samples)</code></pre>
+            </div>
+        </section>
+
+        <!-- Strings -->
+        <section class="section" id="strings">
+            <h3>Strings</h3>
+            
+            <div data-lang="en">
+                <p>Strings store text and have many built-in methods for manipulation.</p>
+            </div>
+            <div data-lang="zh">
+                <p>字串用於儲存文字，並有許多內建方法可進行操作。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>filename = <span class="string">"subject01_eeg.fif"</span>
+
+<span class="builtin">print</span>(filename.<span class="function">upper</span>())
+<span class="builtin">print</span>(filename.<span class="function">replace</span>(<span class="string">"eeg"</span>, <span class="string">"processed"</span>))
+<span class="builtin">print</span>(filename.<span class="function">endswith</span>(<span class="string">".fif"</span>))
+<span class="builtin">print</span>(<span class="builtin">len</span>(filename))</code></pre>
+            </div>
+
+            <h4><span data-lang="en">Indexing and Slicing</span><span data-lang="zh">索引與切片</span></h4>
+            <div data-lang="en">
+                <p>Access characters by position (starting from 0) or extract substrings with slicing.</p>
+            </div>
+            <div data-lang="zh">
+                <p>透過位置（從 0 開始）存取字元，或使用切片提取子字串。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>text = <span class="string">"EEG_DATA"</span>
+<span class="builtin">print</span>(text[<span class="number">0</span>])
+<span class="builtin">print</span>(text[<span class="number">-1</span>])
+<span class="builtin">print</span>(text[<span class="number">0</span>:<span class="number">3</span>])
+<span class="builtin">print</span>(text[<span class="number">4</span>:])</code></pre>
+            </div>
+
+            <h4>F-strings</h4>
+            <div data-lang="en">
+                <p>F-strings embed variables directly in text with optional formatting.</p>
+            </div>
+            <div data-lang="zh">
+                <p>F-string 可直接在文字中嵌入變數，並支援格式化。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>accuracy = <span class="number">0.8567</span>
+<span class="builtin">print</span>(<span class="string">f"Accuracy: </span><span class="keyword">{</span>accuracy<span class="keyword">:.2f}</span><span class="string">"</span>)
+<span class="builtin">print</span>(<span class="string">f"Accuracy: </span><span class="keyword">{</span>accuracy<span class="keyword">:.1%}</span><span class="string">"</span>)</code></pre>
+            </div>
+        </section>
+
+        <!-- Operators -->
+        <section class="section" id="operators">
+            <h3><span data-lang="en">Operators</span><span data-lang="zh">運算子</span></h3>
+
+            <h4><span data-lang="en">Arithmetic</span><span data-lang="zh">算術運算</span></h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>a, b = <span class="number">10</span>, <span class="number">3</span>
+<span class="builtin">print</span>(a <span class="operator">+</span> b, a <span class="operator">-</span> b, a <span class="operator">*</span> b)
+<span class="builtin">print</span>(a <span class="operator">/</span> b)
+<span class="builtin">print</span>(a <span class="operator">//</span> b)
+<span class="builtin">print</span>(a <span class="operator">%</span> b)
+<span class="builtin">print</span>(a <span class="operator">**</span> b)</code></pre>
+            </div>
+
+            <h4><span data-lang="en">Comparison and Logical</span><span data-lang="zh">比較與邏輯運算</span></h4>
+            <div data-lang="en">
+                <p>Comparison operators (<code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>) return booleans. Combine with <code>and</code>, <code>or</code>, <code>not</code>.</p>
+            </div>
+            <div data-lang="zh">
+                <p>比較運算子（<code>==</code>、<code>!=</code>、<code>&lt;</code>、<code>&gt;</code>、<code>&lt;=</code>、<code>&gt;=</code>）回傳布林值。可用 <code>and</code>、<code>or</code>、<code>not</code> 組合。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>x = <span class="number">5</span>
+<span class="builtin">print</span>(x <span class="operator">></span> <span class="number">3</span> <span class="keyword">and</span> x <span class="operator">&lt;</span> <span class="number">10</span>)
+<span class="builtin">print</span>(x <span class="operator">==</span> <span class="number">5</span> <span class="keyword">or</span> x <span class="operator">==</span> <span class="number">10</span>)
+<span class="builtin">print</span>(<span class="keyword">not</span> (x <span class="operator">></span> <span class="number">10</span>))</code></pre>
+            </div>
+        </section>
+
+        <!-- Conditionals -->
+        <section class="section" id="conditionals">
+            <h3><span data-lang="en">Conditionals</span><span data-lang="zh">條件判斷</span></h3>
+            
+            <div data-lang="en">
+                <p>Use <code>if</code>, <code>elif</code>, and <code>else</code> to execute code based on conditions. Python uses indentation to define code blocks.</p>
+            </div>
+            <div data-lang="zh">
+                <p>使用 <code>if</code>、<code>elif</code> 和 <code>else</code> 根據條件執行程式碼。Python 使用縮排定義程式區塊。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>amplitude = <span class="number">150</span>
+
+<span class="keyword">if</span> amplitude <span class="operator">></span> <span class="number">100</span>:
+    <span class="builtin">print</span>(<span class="string">"Artifact detected"</span>)
+<span class="keyword">elif</span> amplitude <span class="operator">&lt;</span> <span class="number">-100</span>:
+    <span class="builtin">print</span>(<span class="string">"Artifact detected"</span>)
+<span class="keyword">else</span>:
+    <span class="builtin">print</span>(<span class="string">"Signal OK"</span>)</code></pre>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>freq = <span class="number">10</span>
+
+<span class="keyword">if</span> <span class="number">8</span> <span class="operator">&lt;=</span> freq <span class="operator">&lt;</span> <span class="number">13</span>:
+    band = <span class="string">"Alpha"</span>
+<span class="keyword">elif</span> <span class="number">13</span> <span class="operator">&lt;=</span> freq <span class="operator">&lt;</span> <span class="number">30</span>:
+    band = <span class="string">"Beta"</span>
+<span class="keyword">else</span>:
+    band = <span class="string">"Other"</span>
+
+<span class="builtin">print</span>(<span class="string">f"</span><span class="keyword">{</span>freq<span class="keyword">}</span><span class="string"> Hz is </span><span class="keyword">{</span>band<span class="keyword">}</span><span class="string">"</span>)</code></pre>
+            </div>
+        </section>
+
+        <!-- Loops -->
+        <section class="section" id="loops">
+            <h3><span data-lang="en">Loops</span><span data-lang="zh">迴圈</span></h3>
+
+            <h4>For Loop</h4>
+            <div data-lang="en">
+                <p>Iterate over sequences. Use <code>range(n)</code> for numbers 0 to n-1, or iterate directly over lists.</p>
+            </div>
+            <div data-lang="zh">
+                <p>遍歷序列。使用 <code>range(n)</code> 產生 0 到 n-1 的數字，或直接遍歷列表。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="keyword">for</span> i <span class="keyword">in</span> <span class="builtin">range</span>(<span class="number">5</span>):
+    <span class="builtin">print</span>(<span class="string">f"Trial </span><span class="keyword">{</span>i<span class="keyword">}</span><span class="string">"</span>)
+
+channels = [<span class="string">'C3'</span>, <span class="string">'C4'</span>, <span class="string">'Cz'</span>]
+<span class="keyword">for</span> ch <span class="keyword">in</span> channels:
+    <span class="builtin">print</span>(ch)
+
+<span class="keyword">for</span> idx, ch <span class="keyword">in</span> <span class="builtin">enumerate</span>(channels):
+    <span class="builtin">print</span>(<span class="string">f"</span><span class="keyword">{</span>idx<span class="keyword">}</span><span class="string">: </span><span class="keyword">{</span>ch<span class="keyword">}</span><span class="string">"</span>)</code></pre>
+            </div>
+
+            <h4>While Loop</h4>
+            <div data-lang="en">
+                <p>Repeat while a condition is true. Use <code>break</code> to exit early, <code>continue</code> to skip iterations.</p>
+            </div>
+            <div data-lang="zh">
+                <p>當條件為真時重複執行。使用 <code>break</code> 提前跳出，<code>continue</code> 跳過當前迭代。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>count = <span class="number">0</span>
+<span class="keyword">while</span> count <span class="operator">&lt;</span> <span class="number">5</span>:
+    <span class="builtin">print</span>(count)
+    count <span class="operator">+=</span> <span class="number">1</span></code></pre>
+            </div>
+
+            <div class="info-box warning">
+                <div class="info-box-title" data-lang="en">Warning</div>
+                <div class="info-box-title" data-lang="zh">警告</div>
+                <p data-lang="en">Ensure the condition eventually becomes False to avoid infinite loops.</p>
+                <p data-lang="zh">確保條件最終會變成 False，以避免無限迴圈。</p>
+            </div>
+        </section>
+
+        <!-- Lists -->
+        <section class="section" id="lists">
+            <h3>Lists</h3>
+            
+            <div data-lang="en">
+                <p>Lists are ordered, mutable collections. Access elements by index, modify with methods.</p>
+            </div>
+            <div data-lang="zh">
+                <p>列表是有序、可變的集合。透過索引存取元素，使用方法進行修改。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>channels = [<span class="string">'Fp1'</span>, <span class="string">'Fp2'</span>, <span class="string">'C3'</span>, <span class="string">'C4'</span>]
+
+<span class="builtin">print</span>(channels[<span class="number">0</span>])
+<span class="builtin">print</span>(channels[<span class="number">-1</span>])
+<span class="builtin">print</span>(channels[<span class="number">1</span>:<span class="number">3</span>])
+
+channels.<span class="function">append</span>(<span class="string">'Pz'</span>)
+channels.<span class="function">remove</span>(<span class="string">'Fp1'</span>)
+<span class="builtin">print</span>(<span class="builtin">len</span>(channels))
+<span class="builtin">print</span>(<span class="string">'C3'</span> <span class="keyword">in</span> channels)</code></pre>
+            </div>
+
+            <div data-lang="en">
+                <p>Useful methods: <code>append()</code>, <code>insert()</code>, <code>remove()</code>, <code>pop()</code>, <code>sort()</code>, <code>reverse()</code>.</p>
+            </div>
+            <div data-lang="zh">
+                <p>常用方法：<code>append()</code>、<code>insert()</code>、<code>remove()</code>、<code>pop()</code>、<code>sort()</code>、<code>reverse()</code>。</p>
+            </div>
+        </section>
+
+        <!-- Dictionaries -->
+        <section class="section" id="dictionaries">
+            <h3>Dictionaries</h3>
+            
+            <div data-lang="en">
+                <p>Dictionaries store key-value pairs for fast lookup. Ideal for metadata, mappings, and configurations.</p>
+            </div>
+            <div data-lang="zh">
+                <p>字典以鍵值對形式儲存資料，可快速查找。適合儲存元資料、映射和配置。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>subject = {
+    <span class="string">"id"</span>: <span class="string">"S001"</span>,
+    <span class="string">"age"</span>: <span class="number">25</span>,
+    <span class="string">"channels"</span>: <span class="number">64</span>
+}
+
+<span class="builtin">print</span>(subject[<span class="string">"id"</span>])
+<span class="builtin">print</span>(subject.<span class="function">get</span>(<span class="string">"age"</span>))
+<span class="builtin">print</span>(subject.<span class="function">get</span>(<span class="string">"gender"</span>, <span class="string">"unknown"</span>))
+
+subject[<span class="string">"condition"</span>] = <span class="string">"MI"</span>
+
+<span class="keyword">for</span> key, value <span class="keyword">in</span> subject.<span class="function">items</span>():
+    <span class="builtin">print</span>(<span class="string">f"</span><span class="keyword">{</span>key<span class="keyword">}</span><span class="string">: </span><span class="keyword">{</span>value<span class="keyword">}</span><span class="string">"</span>)</code></pre>
+            </div>
+        </section>
+
+        <!-- Comprehensions -->
+        <section class="section" id="comprehensions">
+            <h3>Comprehensions</h3>
+            
+            <div data-lang="en">
+                <p>Create lists, dicts, or sets in a single line. Syntax: <code>[expression for item in iterable if condition]</code></p>
+            </div>
+            <div data-lang="zh">
+                <p>用一行建立列表、字典或集合。語法：<code>[表達式 for 項目 in 可迭代物件 if 條件]</code></p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>squares = [x<span class="operator">**</span><span class="number">2</span> <span class="keyword">for</span> x <span class="keyword">in</span> <span class="builtin">range</span>(<span class="number">10</span>)]
+
+even_squares = [x<span class="operator">**</span><span class="number">2</span> <span class="keyword">for</span> x <span class="keyword">in</span> <span class="builtin">range</span>(<span class="number">10</span>) <span class="keyword">if</span> x <span class="operator">%</span> <span class="number">2</span> <span class="operator">==</span> <span class="number">0</span>]
+
+channels = [<span class="string">'C3'</span>, <span class="string">'C4'</span>, <span class="string">'Cz'</span>]
+ch_idx = {ch: i <span class="keyword">for</span> i, ch <span class="keyword">in</span> <span class="builtin">enumerate</span>(channels)}</code></pre>
+            </div>
+        </section>
+
+        <!-- Functions -->
+        <section class="section" id="functions">
+            <h3><span data-lang="en">Functions</span><span data-lang="zh">函式</span></h3>
+            
+            <div data-lang="en">
+                <p>Functions are reusable code blocks. Define with <code>def</code>, use <code>return</code> to send back values.</p>
+            </div>
+            <div data-lang="zh">
+                <p>函式是可重複使用的程式區塊。使用 <code>def</code> 定義，用 <code>return</code> 回傳值。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="keyword">def</span> <span class="function">compute_snr</span>(signal, noise):
+    <span class="keyword">return</span> signal <span class="operator">/</span> noise
+
+<span class="keyword">def</span> <span class="function">bandpass</span>(low=<span class="number">1.0</span>, high=<span class="number">40.0</span>):
+    <span class="keyword">return</span> <span class="string">f"Filter: </span><span class="keyword">{</span>low<span class="keyword">}</span><span class="string">-</span><span class="keyword">{</span>high<span class="keyword">}</span><span class="string"> Hz"</span>
+
+<span class="builtin">print</span>(<span class="function">compute_snr</span>(<span class="number">100</span>, <span class="number">10</span>))
+<span class="builtin">print</span>(<span class="function">bandpass</span>())
+<span class="builtin">print</span>(<span class="function">bandpass</span>(<span class="number">8</span>, <span class="number">13</span>))</code></pre>
+            </div>
+
+            <h4><span data-lang="en">Multiple Returns</span><span data-lang="zh">多重回傳</span></h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="keyword">def</span> <span class="function">stats</span>(data):
+    <span class="keyword">return</span> <span class="builtin">min</span>(data), <span class="builtin">max</span>(data), <span class="builtin">sum</span>(data)/<span class="builtin">len</span>(data)
+
+lo, hi, avg = <span class="function">stats</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>])</code></pre>
+            </div>
+        </section>
+
+        <!-- Classes -->
+        <section class="section" id="classes">
+            <h3><span data-lang="en">Classes</span><span data-lang="zh">類別</span></h3>
+            
+            <div data-lang="en">
+                <p>Classes bundle data and functions together. Use <code>self</code> to refer to the instance, <code>__init__</code> to initialize.</p>
+            </div>
+            <div data-lang="zh">
+                <p>類別將資料和函式封裝在一起。使用 <code>self</code> 指向實例，<code>__init__</code> 進行初始化。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="keyword">class</span> <span class="function">Recording</span>:
+    <span class="keyword">def</span> <span class="function">__init__</span>(<span class="keyword">self</span>, subject, channels, fs):
+        <span class="keyword">self</span>.subject = subject
+        <span class="keyword">self</span>.channels = channels
+        <span class="keyword">self</span>.fs = fs
+        <span class="keyword">self</span>.data = []
+    
+    <span class="keyword">def</span> <span class="function">duration</span>(<span class="keyword">self</span>):
+        <span class="keyword">return</span> <span class="builtin">len</span>(<span class="keyword">self</span>.data) <span class="operator">/</span> <span class="keyword">self</span>.fs
+
+rec = Recording(<span class="string">"S001"</span>, <span class="number">64</span>, <span class="number">512</span>)
+<span class="builtin">print</span>(rec.subject)
+<span class="builtin">print</span>(rec.channels)</code></pre>
+            </div>
+        </section>
+
+        <!-- Packages: Pip & Import -->
+        <section class="section" id="packages">
+            <h3><span data-lang="en">Installing and Importing Packages</span><span data-lang="zh">安裝與匯入套件</span></h3>
+            
+            <div data-lang="en">
+                <p>Python's power comes from external packages. Use <code>pip</code> to install packages, then <code>import</code> to use them in your code.</p>
+            </div>
+            <div data-lang="zh">
+                <p>Python 的強大來自外部套件。使用 <code>pip</code> 安裝套件，然後用 <code>import</code> 在程式碼中使用。</p>
+            </div>
+
+            <h4><span data-lang="en">Installing with pip</span><span data-lang="zh">使用 pip 安裝</span></h4>
+            <div data-lang="en">
+                <p>Run these commands in your terminal or in a Colab cell (with <code>!</code> prefix):</p>
+            </div>
+            <div data-lang="zh">
+                <p>在終端機或 Colab 儲存格中執行以下指令（Colab 需加 <code>!</code> 前綴）：</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Bash</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>pip install numpy
+pip install scipy
+pip install matplotlib
+pip install mne</code></pre>
+            </div>
+
+            <div data-lang="en">
+                <p>In Google Colab, NumPy, SciPy, and Matplotlib are pre-installed. For other packages:</p>
+            </div>
+            <div data-lang="zh">
+                <p>在 Google Colab 中，NumPy、SciPy 和 Matplotlib 已預先安裝。其他套件可這樣安裝：</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python (Colab)</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>!pip install mne</code></pre>
+            </div>
+
+            <h4><span data-lang="en">Importing Packages</span><span data-lang="zh">匯入套件</span></h4>
+            <div data-lang="en">
+                <p>After installing, import packages at the top of your script. Common conventions use short aliases.</p>
+            </div>
+            <div data-lang="zh">
+                <p>安裝後，在程式碼開頭匯入套件。通常會使用簡短的別名。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+<span class="keyword">import</span> scipy <span class="keyword">as</span> sp
+<span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+<span class="keyword">from</span> scipy <span class="keyword">import</span> signal
+<span class="keyword">from</span> scipy <span class="keyword">import</span> stats</code></pre>
+            </div>
+
+            <div class="info-box tip">
+                <div class="info-box-title" data-lang="en">Import Styles</div>
+                <div class="info-box-title" data-lang="zh">匯入方式</div>
+                <ul>
+                    <li data-lang="en"><code>import numpy as np</code> — import entire package with alias</li>
+                    <li data-lang="zh"><code>import numpy as np</code> — 匯入整個套件並使用別名</li>
+                    <li data-lang="en"><code>from scipy import signal</code> — import specific module</li>
+                    <li data-lang="zh"><code>from scipy import signal</code> — 匯入特定模組</li>
+                    <li data-lang="en"><code>from numpy import array, zeros</code> — import specific functions</li>
+                    <li data-lang="zh"><code>from numpy import array, zeros</code> — 匯入特定函式</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- NumPy -->
+        <section class="section" id="numpy">
+            <h3>NumPy</h3>
+            
+            <div data-lang="en">
+                <p>NumPy provides efficient arrays for numerical computing. Essential for signal processing.</p>
+            </div>
+            <div data-lang="zh">
+                <p>NumPy 提供高效的陣列運算，是訊號處理的必備工具。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+data = np.<span class="function">array</span>([<span class="number">1.2</span>, <span class="number">-0.5</span>, <span class="number">2.3</span>])
+zeros = np.<span class="function">zeros</span>((<span class="number">64</span>, <span class="number">1000</span>))
+time = np.<span class="function">linspace</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">512</span>)
+
+<span class="builtin">print</span>(zeros.shape)
+<span class="builtin">print</span>(zeros.dtype)</code></pre>
+            </div>
+
+            <h4><span data-lang="en">Indexing</span><span data-lang="zh">索引</span></h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code>eeg = np.random.<span class="function">randn</span>(<span class="number">64</span>, <span class="number">1000</span>)
+
+channel_0 = eeg[<span class="number">0</span>, :]
+sample_500 = eeg[:, <span class="number">500</span>]
+subset = eeg[<span class="number">0</span>:<span class="number">10</span>, <span class="number">100</span>:<span class="number">200</span>]
+high_amp = eeg[eeg <span class="operator">></span> <span class="number">2.0</span>]</code></pre>
+            </div>
+
+            <h4><span data-lang="en">Operations</span><span data-lang="zh">運算</span></h4>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="builtin">print</span>(np.<span class="function">mean</span>(eeg))
+<span class="builtin">print</span>(np.<span class="function">std</span>(eeg))
+<span class="builtin">print</span>(np.<span class="function">mean</span>(eeg, axis=<span class="number">1</span>).shape)
+
+scaled = eeg <span class="operator">*</span> <span class="number">1e6</span>
+squared = eeg <span class="operator">**</span> <span class="number">2</span></code></pre>
+            </div>
+        </section>
+
+        <!-- SciPy -->
+        <section class="section" id="scipy">
+            <h3>SciPy</h3>
+            
+            <div data-lang="en">
+                <p>SciPy provides signal processing tools: filtering, spectral analysis, and statistics.</p>
+            </div>
+            <div data-lang="zh">
+                <p>SciPy 提供訊號處理工具：濾波、頻譜分析和統計。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="keyword">from</span> scipy <span class="keyword">import</span> signal
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+
+fs = <span class="number">512</span>
+t = np.<span class="function">arange</span>(<span class="number">0</span>, <span class="number">5</span>, <span class="number">1</span>/fs)
+eeg = np.<span class="function">sin</span>(<span class="number">2</span> <span class="operator">*</span> np.pi <span class="operator">*</span> <span class="number">10</span> <span class="operator">*</span> t) <span class="operator">+</span> np.random.<span class="function">randn</span>(<span class="builtin">len</span>(t)) <span class="operator">*</span> <span class="number">0.5</span>
+
+nyq = fs <span class="operator">/</span> <span class="number">2</span>
+b, a = signal.<span class="function">butter</span>(<span class="number">4</span>, [<span class="number">8</span>/nyq, <span class="number">13</span>/nyq], btype=<span class="string">'band'</span>)
+filtered = signal.<span class="function">filtfilt</span>(b, a, eeg)
+
+freqs, psd = signal.<span class="function">welch</span>(eeg, fs=fs, nperseg=<span class="number">256</span>)</code></pre>
+            </div>
+        </section>
+
+        <!-- Matplotlib -->
+        <section class="section" id="matplotlib">
+            <h3>Matplotlib</h3>
+            
+            <div data-lang="en">
+                <p>Matplotlib creates visualizations: line plots, spectrograms, heatmaps.</p>
+            </div>
+            <div data-lang="zh">
+                <p>Matplotlib 用於建立視覺化圖表：折線圖、頻譜圖、熱圖等。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="keyword">import</span> matplotlib.pyplot <span class="keyword">as</span> plt
+
+plt.<span class="function">figure</span>(figsize=(<span class="number">10</span>, <span class="number">4</span>))
+plt.<span class="function">plot</span>(t, eeg, linewidth=<span class="number">0.5</span>)
+plt.<span class="function">xlabel</span>(<span class="string">'Time (s)'</span>)
+plt.<span class="function">ylabel</span>(<span class="string">'Amplitude'</span>)
+plt.<span class="function">title</span>(<span class="string">'EEG Signal'</span>)
+plt.<span class="function">show</span>()
+
+fig, axes = plt.<span class="function">subplots</span>(<span class="number">1</span>, <span class="number">2</span>, figsize=(<span class="number">12</span>, <span class="number">4</span>))
+axes[<span class="number">0</span>].<span class="function">plot</span>(t, eeg)
+axes[<span class="number">1</span>].<span class="function">semilogy</span>(freqs, psd)
+plt.<span class="function">tight_layout</span>()
+plt.<span class="function">show</span>()</code></pre>
+            </div>
+        </section>
+
+        <!-- File I/O -->
+        <section class="section" id="file-io">
+            <h3>File I/O</h3>
+            
+            <div data-lang="en">
+                <p>Read and write files using <code>open()</code> with context managers, or NumPy for arrays.</p>
+            </div>
+            <div data-lang="zh">
+                <p>使用 <code>open()</code> 搭配上下文管理器讀寫檔案，或用 NumPy 處理陣列。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="keyword">with</span> <span class="builtin">open</span>(<span class="string">'results.txt'</span>, <span class="string">'w'</span>) <span class="keyword">as</span> f:
+    f.<span class="function">write</span>(<span class="string">"Subject: S001\n"</span>)
+
+<span class="keyword">with</span> <span class="builtin">open</span>(<span class="string">'results.txt'</span>, <span class="string">'r'</span>) <span class="keyword">as</span> f:
+    content = f.<span class="function">read</span>()
+
+<span class="keyword">import</span> numpy <span class="keyword">as</span> np
+np.<span class="function">save</span>(<span class="string">'data.npy'</span>, eeg)
+loaded = np.<span class="function">load</span>(<span class="string">'data.npy'</span>)
+
+np.<span class="function">savez</span>(<span class="string">'dataset.npz'</span>, data=eeg, labels=[<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>])
+dataset = np.<span class="function">load</span>(<span class="string">'dataset.npz'</span>)</code></pre>
+            </div>
+        </section>
+
+        <!-- Errors -->
+        <section class="section" id="errors">
+            <h3><span data-lang="en">Error Handling</span><span data-lang="zh">錯誤處理</span></h3>
+            
+            <div data-lang="en">
+                <p>Use <code>try/except</code> to handle errors gracefully without crashing.</p>
+            </div>
+            <div data-lang="zh">
+                <p>使用 <code>try/except</code> 優雅地處理錯誤，避免程式崩潰。</p>
+            </div>
+
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">Python</span>
+                    <button class="code-btn" onclick="copyCode(this)">Copy</button>
+                </div>
+                <pre><code><span class="keyword">try</span>:
+    result = <span class="number">10</span> <span class="operator">/</span> <span class="number">0</span>
+<span class="keyword">except</span> ZeroDivisionError:
+    <span class="builtin">print</span>(<span class="string">"Cannot divide by zero"</span>)
+
+<span class="keyword">def</span> <span class="function">load_file</span>(path):
+    <span class="keyword">try</span>:
+        <span class="keyword">with</span> <span class="builtin">open</span>(path) <span class="keyword">as</span> f:
+            <span class="keyword">return</span> f.<span class="function">read</span>()
+    <span class="keyword">except</span> FileNotFoundError:
+        <span class="builtin">print</span>(<span class="string">f"Not found: </span><span class="keyword">{</span>path<span class="keyword">}</span><span class="string">"</span>)
+        <span class="keyword">return</span> <span class="keyword">None</span></code></pre>
+            </div>
+
+            <div class="info-box tip">
+                <div class="info-box-title" data-lang="en">Next Steps</div>
+                <div class="info-box-title" data-lang="zh">下一步</div>
+                <ul>
+                    <li data-lang="en"><a href="https://mne.tools">MNE-Python</a> for EEG/MEG analysis</li>
+                    <li data-lang="zh"><a href="https://mne.tools">MNE-Python</a> 進行 EEG/MEG 分析</li>
+                    <li data-lang="en"><a href="https://scikit-learn.org">Scikit-learn</a> for machine learning</li>
+                    <li data-lang="zh"><a href="https://scikit-learn.org">Scikit-learn</a> 進行機器學習</li>
+                </ul>
+            </div>
+        </section>
+
+        <footer>
+            <p>Python4BCI Tutorial</p>
+        </footer>
+    </main>
+
+    <script>
+        function setLang(lang) {
+            document.body.classList.toggle('zh', lang === 'zh');
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+            });
+            localStorage.setItem('lang', lang);
+        }
+
+        function copyCode(btn) {
+            const code = btn.closest('.code-block').querySelector('code').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function toggleNav() {
+            document.getElementById('nav').classList.toggle('open');
+        }
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 1024) {
+                    document.getElementById('nav').classList.remove('open');
+                }
+            });
+        });
+
+        const savedLang = localStorage.getItem('lang');
+        if (savedLang) setLang(savedLang);
+    </script>
+</body>
+</html>
